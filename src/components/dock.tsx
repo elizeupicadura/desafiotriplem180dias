@@ -1,19 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, Home, TrendingUp } from "lucide-react";
+import { CalendarCheck, Home, LogOut } from "lucide-react";
 
 export function Dock() {
-  const items = [
-    { to: "/dashboard", icon: Home, label: "Início" },
-    { to: "/checkin", icon: CalendarCheck, label: "Check-in" },
-    { to: "/", icon: TrendingUp, label: "Início" },
-  ] as const;
-
   return (
     <div className="fixed inset-x-0 bottom-5 z-40 flex justify-center">
       <nav className="flex items-center gap-1 rounded-full border border-border bg-card/70 p-1.5 shadow-lg backdrop-blur-xl">
         <DockItem to="/dashboard" icon={Home} label="Início" />
         <DockItem to="/checkin" icon={CalendarCheck} label="Check-in" />
-        <DockItem to="/" icon={TrendingUp} label="Sair" />
+        <DockItem to="/" icon={LogOut} label="Sair" />
       </nav>
     </div>
   );
