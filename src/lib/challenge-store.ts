@@ -34,7 +34,11 @@ export type DailyCheckin = {
 
 export type ChallengeState = {
   name: string;
+  whatsapp: string;
+  instagram: string;
+  email: string;
   goal: string;
+  why: string;
   startDate: string; // ISO
   endDate: string; // ISO
   sprints: Sprint[];
@@ -42,6 +46,7 @@ export type ChallengeState = {
   habits: Habit[];
   metrics: Metric[];
   checkins: DailyCheckin[];
+  missionLog: Record<string, string[]>; // date -> completed habit ids
   completed: boolean;
   xp: number;
 };
