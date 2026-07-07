@@ -67,6 +67,8 @@ const DEFAULT_STATE: ChallengeState = {
   whatsapp: "",
   instagram: "",
   email: "",
+  perfil: "",
+  objetivoFinanceiro: "",
   goal: "",
   why: "",
   startDate: "",
