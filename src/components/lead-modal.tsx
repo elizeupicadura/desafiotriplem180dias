@@ -6,7 +6,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbxQcSBy5kEuIYeyb4zC-NVDX9eFBs0WD4f4zjAvtpFOJW2FD3A5xpttrcWSatvKvM-D2A/exec";
+  "https://script.google.com/macros/s/AKfycbz6inpVEgSwXUewtfK5fWbGrS9xkEJuwT5XIf2WgMSe-T8-E_5iC8xfie3J2sfHBeMvbQ/exec";
+
+const IFRAME_NAME = "hidden_google_sheets_iframe";
+
+function submitViaHiddenForm(fields: Record<string, string>) {
+  let iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${IFRAME_NAME}"]`);
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = IFRAME_NAME;
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = WEBHOOK_URL;
+  form.target = IFRAME_NAME;
+  form.style.display = "none";
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(() => form.remove(), 2000);
+}
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
 const OBJETIVOS = ["Até 10 mil", "10 a 30 mil", "30 a 100 mil", "100 mil+"];
