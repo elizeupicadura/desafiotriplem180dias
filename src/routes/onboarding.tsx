@@ -22,6 +22,7 @@ import {
   type Sprint,
 } from "@/lib/challenge-store";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
