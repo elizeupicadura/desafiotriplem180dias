@@ -62,9 +62,9 @@ function Onboarding() {
   }
 
   const canContinue = useMemo(() => {
-    if (step === 0) return goal.trim() && name.trim() && endDate;
+    if (step === 0) return goal.trim() && endDate;
     return true;
-  }, [step, goal, name, endDate]);
+  }, [step, goal, endDate]);
 
   return (
     <div className="relative min-h-screen bg-background">
