@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Desafio 180 Dias — Transforme sua meta em um sistema" },
+      { name: "description", content: "Monte automaticamente seu plano de 180 dias: sprints, rotina, hábitos, métricas e check-ins diários numa experiência premium." },
+      { name: "author", content: "Desafio 180 Dias" },
+      { property: "og:title", content: "Desafio 180 Dias" },
+      { property: "og:description", content: "O framework para transformar qualquer meta em um sistema." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
