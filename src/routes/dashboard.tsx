@@ -1,22 +1,34 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Award, Brain, CalendarCheck, Flame, RefreshCw, Target } from "lucide-react";
+import { Award, Brain, Check, Flame, Target, Users } from "lucide-react";
 import {
   currentDay,
   currentLevel,
   currentSprintIndex,
   daysRemaining,
+  missionFor,
   progressPct,
-  resetChallenge,
+  setChallenge,
   streak,
+  toggleMission,
   todayISO,
+  totalDays,
   useChallenge,
 } from "@/lib/challenge-store";
+import { celebrate } from "@/lib/confetti";
 import { Button } from "@/components/ui/button";
+import { Dock } from "@/components/dock";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
 
 function Dashboard() {
   const c = useChallenge();
@@ -32,43 +44,71 @@ function Dashboard() {
   const sprint = c.sprints[sprintIdx];
   const level = currentLevel(c.xp);
   const pct = progressPct(c);
-  const didCheckinToday = c.checkins.some((ci) => ci.date === todayISO());
+  const total = totalDays(c);
+  const per = Math.round(total / c.sprints.length);
+  const sprintStart = sprintIdx * per + 1;
+  const sprintEnd = sprintIdx === c.sprints.length - 1 ? total : (sprintIdx + 1) * per;
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-28">
       <div className="mx-auto max-w-3xl px-6 py-10">
-        <header className="mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+        {/* greeting + group CTA */}
+        <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-muted-foreground">Olá,</p>
-            <h1 className="truncate text-3xl font-black tracking-tight sm:text-4xl">{c.name || "Executor"} 👋</h1>
+            <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
+              {greeting()}, {c.name || "Executor"}.
+            </h1>
+            <p className="mt-1 text-muted-foreground">
+              Hoje é o dia {currentDay(c)}. Faltam {daysRemaining(c)} dias.
+            </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => { resetChallenge(); navigate({ to: "/" }); }}>
-            <RefreshCw className="mr-1 h-4 w-4" /> Reiniciar
-          </Button>
+          <a
+            href="#"
+            className="hidden shrink-0 items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:inline-flex"
+          >
+            <Users className="h-4 w-4" /> Entrar no Grupo
+          </a>
         </header>
 
-        {/* hero progress */}
-        <div className="mb-6 grid gap-4 sm:grid-cols-[auto_1fr]">
-          <div className="flex items-center justify-center rounded-3xl border border-border bg-card p-6 shadow-sm">
-            <Ring pct={pct} />
+        {/* why reminder */}
+        {c.why && (
+          <div className="mb-6 rounded-2xl border-l-4 border-primary bg-primary/5 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Você começou porque</p>
+            <p className="mt-1 text-lg font-medium leading-snug">{c.why}</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Stat label="Dias restantes" value={daysRemaining(c)} />
-            <Stat label="Hoje é o dia" value={currentDay(c)} />
-            <Stat label="Sequência" value={streak(c)} icon={<Flame className="h-4 w-4 text-primary" />} />
-            <Stat label="XP" value={c.xp} icon={<Award className="h-4 w-4 text-primary" />} />
-          </div>
-        </div>
+        )}
+
+        {/* mission of the day */}
+        <MissionCard />
 
         {/* level */}
-        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10">
-            <Award className="h-6 w-6 text-primary" />
+        <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10">
+              <Award className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">Nível {level.number}</p>
+              <p className="text-lg font-bold">{level.name}</p>
+            </div>
+            <p className="font-mono text-sm font-bold text-primary">{c.xp} XP</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Seu nível</p>
-            <p className="text-lg font-bold">{level.name}</p>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${level.pct}%` }} />
           </div>
+          {level.next && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Faltam {level.next.min - c.xp} XP para {level.next.name}
+            </p>
+          )}
+        </div>
+
+        {/* stats */}
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Stat label="Progresso" value={`${pct}%`} />
+          <Stat label="Dias restantes" value={daysRemaining(c)} />
+          <Stat label="Sequência" value={streak(c)} icon={<Flame className="h-4 w-4 text-primary" />} />
+          <Stat label="XP" value={c.xp} icon={<Award className="h-4 w-4 text-primary" />} />
         </div>
 
         {/* current sprint */}
@@ -78,46 +118,18 @@ function Dashboard() {
               <Target className="h-4 w-4" /> Sprint atual · {sprint.name}
             </div>
             <p className="text-xl font-bold">{sprint.label}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {sprintEnd - sprintStart + 1} dias · Dias {sprintStart}–{sprintEnd}
+            </p>
             {sprint.goal && <p className="mt-2 text-muted-foreground">Meta: {sprint.goal}</p>}
             {sprint.focus && <p className="text-sm text-muted-foreground">Foco: {sprint.focus}</p>}
-          </div>
-        )}
-
-        {/* routine today */}
-        <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-          <p className="mb-3 font-bold">Rotina de hoje</p>
-          {c.routine.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum bloco definido.</p>
-          ) : (
-            <div className="space-y-2">
-              {c.routine.map((b) => (
-                <div key={b.id} className="flex items-center gap-3 rounded-xl bg-secondary/60 px-3 py-2">
-                  <span className="w-14 font-mono text-sm font-bold text-primary">{b.time}</span>
-                  <span className="font-medium">{b.title}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* habits */}
-        {c.habits.length > 0 && (
-          <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="mb-3 font-bold">Hábitos inegociáveis</p>
-            <div className="flex flex-wrap gap-2">
-              {c.habits.map((h) => (
-                <span key={h.id} className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                  {h.label}
-                </span>
-              ))}
-            </div>
           </div>
         )}
 
         {/* metrics */}
         {c.metrics.length > 0 && (
           <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="mb-3 font-bold">Métricas</p>
+            <p className="mb-3 font-bold">Métricas de vitória</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {c.metrics.map((m) => (
                 <div key={m.id} className="rounded-xl bg-secondary/60 p-3 text-center">
@@ -131,59 +143,90 @@ function Dashboard() {
 
         <AiAnalysis />
 
-        {/* CTA */}
-        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/80 p-4 backdrop-blur">
-          <div className="mx-auto flex max-w-3xl gap-3">
-            <Button asChild className="h-12 flex-1 rounded-xl text-base font-bold" disabled={didCheckinToday}>
-              <Link to="/checkin">
-                <CalendarCheck className="mr-2 h-5 w-5" />
-                {didCheckinToday ? "Check-in feito hoje ✓" : "Check-in diário"}
-              </Link>
-            </Button>
-          </div>
+        {/* group CTA footer */}
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center">
+          <a
+            href="#"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
+          >
+            <Users className="h-4 w-4" /> Entrar no Grupo
+          </a>
+          <p className="mt-3 text-xs text-muted-foreground">Toda semana libero melhorias gratuitas do desafio.</p>
         </div>
       </div>
+
+      <Dock />
     </div>
   );
 }
 
-function Ring({ pct }: { pct: number }) {
-  const r = 52;
-  const circ = 2 * Math.PI * r;
+function MissionCard() {
+  const c = useChallenge();
+  const today = todayISO();
+  const done = new Set(missionFor(c, today));
+  const items = c.habits.length ? c.habits : c.routine.map((r) => ({ id: r.id, label: `${r.time} · ${r.title}` }));
+
+  function toggle(id: string) {
+    const nextLog = toggleMission(c, today, id);
+    const wasDone = done.has(id);
+    const nextDone = new Set(nextLog[today]);
+    // award XP only when newly completing
+    const gained = wasDone ? 0 : 10;
+    setChallenge({ missionLog: nextLog, xp: Math.max(0, c.xp + gained) });
+    if (!wasDone && items.length > 0 && items.every((it) => nextDone.has(it.id))) {
+      celebrate();
+    }
+  }
+
+  const allDone = items.length > 0 && items.every((it) => done.has(it.id));
+
   return (
-    <div className="relative h-36 w-36">
-      <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="var(--color-muted)" strokeWidth="10" />
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          stroke="var(--color-primary)"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          strokeDashoffset={circ - (circ * pct) / 100}
-          className="transition-all duration-700"
-        />
-      </svg>
-      <div className="absolute inset-0 grid place-items-center">
-        <div className="text-center">
-          <p className="text-3xl font-black">{pct}%</p>
-          <p className="text-xs text-muted-foreground">progresso</p>
-        </div>
+    <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+      <div className="bg-primary/10 px-6 py-4">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary">Missão de hoje</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {allDone ? "Missão concluída. Você venceu o dia. 🔥" : `${done.size}/${items.length} concluídas`}
+        </p>
+      </div>
+      <div className="divide-y divide-border">
+        {items.length === 0 && (
+          <p className="px-6 py-8 text-center text-sm text-muted-foreground">
+            Defina hábitos ou rotina no onboarding para montar sua missão.
+          </p>
+        )}
+        {items.map((it) => {
+          const checked = done.has(it.id);
+          return (
+            <button
+              key={it.id}
+              onClick={() => toggle(it.id)}
+              className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-accent/50"
+            >
+              <span
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 transition-all ${
+                  checked ? "scale-110 border-primary bg-primary text-primary-foreground" : "border-border"
+                }`}
+              >
+                {checked && <Check className="h-4 w-4" />}
+              </span>
+              <span className={`font-medium transition-all ${checked ? "text-muted-foreground line-through" : ""}`}>
+                {it.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function Stat({ label, value, icon }: { label: string; value: number; icon?: React.ReactNode }) {
+function Stat({ label, value, icon }: { label: string; value: number | string; icon?: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         {icon} {label}
       </div>
-      <p className="mt-1 text-3xl font-black">{value}</p>
+      <p className="mt-1 text-2xl font-black">{value}</p>
     </div>
   );
 }

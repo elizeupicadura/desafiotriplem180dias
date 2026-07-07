@@ -34,7 +34,11 @@ export type DailyCheckin = {
 
 export type ChallengeState = {
   name: string;
+  whatsapp: string;
+  instagram: string;
+  email: string;
   goal: string;
+  why: string;
   startDate: string; // ISO
   endDate: string; // ISO
   sprints: Sprint[];
@@ -42,6 +46,7 @@ export type ChallengeState = {
   habits: Habit[];
   metrics: Metric[];
   checkins: DailyCheckin[];
+  missionLog: Record<string, string[]>; // date -> completed habit ids
   completed: boolean;
   xp: number;
 };
@@ -57,7 +62,11 @@ const DEFAULT_SPRINTS: Sprint[] = [
 
 const DEFAULT_STATE: ChallengeState = {
   name: "",
+  whatsapp: "",
+  instagram: "",
+  email: "",
   goal: "",
+  why: "",
   startDate: "",
   endDate: "",
   sprints: DEFAULT_SPRINTS,
@@ -65,6 +74,7 @@ const DEFAULT_STATE: ChallengeState = {
   habits: [],
   metrics: [],
   checkins: [],
+  missionLog: {},
   completed: false,
   xp: 0,
 };
@@ -170,14 +180,32 @@ export const LEVELS = [
   { name: "Iniciante", min: 0 },
   { name: "Executor", min: 100 },
   { name: "Disciplinado", min: 300 },
-  { name: "Imparável", min: 700 },
-  { name: "180 Mode", min: 1500 },
+  { name: "Consistente", min: 700 },
+  { name: "Elite", min: 1500 },
+  { name: "180 Mode", min: 3000 },
 ];
 
 export function currentLevel(xp: number) {
-  let level = LEVELS[0];
-  for (const l of LEVELS) if (xp >= l.min) level = l;
-  return level;
+  let idx = 0;
+  for (let i = 0; i < LEVELS.length; i++) if (xp >= LEVELS[i].min) idx = i;
+  const level = LEVELS[idx];
+  const next = LEVELS[idx + 1] ?? null;
+  const span = next ? next.min - level.min : 1;
+  const into = xp - level.min;
+  const pct = next ? Math.min(100, Math.round((into / span) * 100)) : 100;
+  return { ...level, number: idx + 1, next, pct };
+}
+
+// completed mission habit ids for a given date
+export function missionFor(s: ChallengeState, date: string) {
+  return s.missionLog[date] ?? [];
+}
+
+export function toggleMission(s: ChallengeState, date: string, habitId: string) {
+  const cur = new Set(s.missionLog[date] ?? []);
+  if (cur.has(habitId)) cur.delete(habitId);
+  else cur.add(habitId);
+  return { ...s.missionLog, [date]: [...cur] };
 }
 
 export function uid() {
