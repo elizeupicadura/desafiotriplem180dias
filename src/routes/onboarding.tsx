@@ -51,7 +51,7 @@ function Onboarding() {
   const remaining = daysBetween(todayISO(), endDate);
 
   function next() {
-    setChallenge({ name, goal, endDate, sprints, routine, habits, metrics, startDate: c.startDate || todayISO() });
+    setChallenge({ name, goal, why, endDate, sprints, routine, habits, metrics, startDate: c.startDate || todayISO() });
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
