@@ -156,10 +156,12 @@ function Dashboard() {
         {/* group CTA footer */}
         <div className="rounded-2xl border border-primary/30 bg-primary/5 p-5 text-center">
           <a
-            href="#"
+            href="https://whatsapp.com/channel/0029Vb5ZfYdFnSz9aTKoDg2z"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
           >
-            <Users className="h-4 w-4" /> Entrar no Grupo
+            <Users className="h-4 w-4" /> Entrar no canal gratuito
           </a>
           <p className="mt-3 text-xs text-muted-foreground">Toda semana libero melhorias gratuitas do desafio.</p>
         </div>
