@@ -4,6 +4,7 @@ import { ArrowRight, Check, Sparkles, Star } from "lucide-react";
 import { useChallenge } from "@/lib/challenge-store";
 import { LeadModal } from "@/components/lead-modal";
 import { LoadingScreen } from "@/components/loading-screen";
+import { AccessUnlocked } from "@/components/access-unlocked";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -16,6 +17,7 @@ function Index() {
   const navigate = useNavigate();
   const hasPlan = Boolean(c.endDate);
   const [modal, setModal] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
 
   return (
@@ -93,9 +95,17 @@ function Index() {
         onClose={() => setModal(false)}
         onDone={() => {
           setModal(false);
-          setLoading(true);
+          setUnlocked(true);
         }}
       />
+      {unlocked && (
+        <AccessUnlocked
+          onContinue={() => {
+            setUnlocked(false);
+            setLoading(true);
+          }}
+        />
+      )}
       {loading && <LoadingScreen onDone={() => navigate({ to: "/onboarding" })} />}
     </div>
   );
