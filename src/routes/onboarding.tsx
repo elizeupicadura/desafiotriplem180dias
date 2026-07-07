@@ -39,8 +39,9 @@ function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
-  const [name, setName] = useState(c.name);
+  const [name] = useState(c.name);
   const [goal, setGoal] = useState(c.goal);
+  const [why, setWhy] = useState(c.why);
   const [endDate, setEndDate] = useState(c.endDate || defaultEnd());
   const [sprints, setSprints] = useState<Sprint[]>(c.sprints);
   const [routine, setRoutine] = useState<RoutineBlock[]>(c.routine);
