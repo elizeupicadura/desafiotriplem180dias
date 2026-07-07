@@ -109,7 +109,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     setError("");
     setStatus("sending");
 
-    const payload = {
+    const payload: Record<string, string> = {
       nome: f.name.trim(),
       whatsapp: f.whatsapp.trim(),
       instagram: f.instagram.trim(),
@@ -118,7 +118,6 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       porqueMeta: f.porqueMeta.trim(),
       perfil: f.perfil,
       objetivoFinanceiro: f.objetivoFinanceiro,
-      origem: "Desafio 180 Dias",
       utmSource: browserData.utmSource,
       utmMedium: browserData.utmMedium,
       utmCampaign: browserData.utmCampaign,
@@ -126,12 +125,15 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     };
 
     try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-      });
+      submitViaHiddenForm(payload);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Erro ao enviar");
+      setSaving(false);
+      return;
+    }
+
+    setTimeout(() => {
       setStatus("sent");
       setChallenge({
         name: f.name.trim(),
@@ -143,46 +145,35 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         perfil: f.perfil,
         objetivoFinanceiro: f.objetivoFinanceiro,
       });
-      onDone();
-    } catch (err) {
-      setStatus("error");
-      setError(
-        `Não foi possível liberar seu desafio agora. Tente novamente. ${err instanceof Error ? err.message : ""}`.trim(),
-      );
-    } finally {
       setSaving(false);
-    }
+      onDone();
+    }, 1000);
   }
 
-  async function testSend() {
+  function testSend() {
     setStatus("sending");
     setError("");
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          nome: "Teste Lovable",
-          whatsapp: "62999999999",
-          instagram: "@teste",
-          email: "teste@teste.com",
-          meta: "Teste de integração",
-          origem: "Desafio 180 Dias - Teste",
-          pagina: browserData.pageUrl,
-        }),
-      });
-      setStatus("sent");
-    } catch (err) {
-      setStatus("error");
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
-    }
+    submitViaHiddenForm({
+      nome: "Teste Lovable",
+      whatsapp: "62999999999",
+      instagram: "@teste",
+      email: "teste@teste.com",
+      meta: "Teste de integração",
+      porqueMeta: "",
+      perfil: "",
+      objetivoFinanceiro: "",
+      utmSource: browserData.utmSource,
+      utmMedium: browserData.utmMedium,
+      utmCampaign: browserData.utmCampaign,
+      pagina: browserData.pageUrl,
+    });
+    setTimeout(() => setStatus("sent"), 1000);
   }
 
   const STATUS_TEXT: Record<typeof status, string> = {
     idle: "Status: aguardando envio",
-    sending: "Status: enviando...",
-    sent: "Status: enviado para o Google Sheets",
+    sending: "Enviando...",
+    sent: "Enviado. Liberando seu desafio...",
     error: "Status: erro ao enviar",
   };
 
