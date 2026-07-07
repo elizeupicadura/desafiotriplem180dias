@@ -85,7 +85,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       });
       onDone();
     } catch {
-      setError("Não conseguimos liberar agora. Tente novamente em alguns segundos.");
+      setError("Não foi possível liberar seu desafio agora. Tente novamente.");
     } finally {
       setSaving(false);
     }
