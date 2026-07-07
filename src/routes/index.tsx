@@ -4,6 +4,7 @@ import { ArrowRight, Check, Sparkles, Star } from "lucide-react";
 import { useChallenge } from "@/lib/challenge-store";
 import { LeadModal } from "@/components/lead-modal";
 import { LoadingScreen } from "@/components/loading-screen";
+import { AccessUnlocked } from "@/components/access-unlocked";
 
 export const Route = createFileRoute("/")({
   component: Index,
