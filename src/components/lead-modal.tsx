@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbw9BiX2vs16_-k9wWBCdJvrfn98tTqp02k9j4KSW-EMrouXUWAIoya-UP5lhdEX7Od23g/exec";
+  "https://script.google.com/macros/s/AKfycbxQcSBy5kEuIYeyb4zC-NVDX9eFBs0WD4f4zjAvtpFOJW2FD3A5xpttrcWSatvKvM-D2A/exec";
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
 const OBJETIVOS = ["Até 10 mil", "10 a 30 mil", "30 a 100 mil", "100 mil+"];
@@ -85,7 +85,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       });
       onDone();
     } catch {
-      setError("Não conseguimos liberar agora. Tente novamente em alguns segundos.");
+      setError("Não foi possível liberar seu desafio agora. Tente novamente.");
     } finally {
       setSaving(false);
     }
