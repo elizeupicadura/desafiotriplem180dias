@@ -80,10 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Desafio 180 Dias — Transforme sua meta em um sistema" },
       { name: "description", content: "Monte automaticamente seu plano de 180 dias: sprints, rotina, hábitos, métricas e check-ins diários numa experiência premium." },
       { name: "author", content: "Desafio 180 Dias" },
-      { property: "og:title", content: "Desafio 180 Dias" },
-      { property: "og:description", content: "O framework para transformar qualquer meta em um sistema." },
+      { property: "og:title", content: "Desafio 180 Dias — Transforme sua meta em um sistema" },
+      { property: "og:description", content: "Monte automaticamente seu plano de 180 dias: sprints, rotina, hábitos, métricas e check-ins diários numa experiência premium." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Desafio 180 Dias — Transforme sua meta em um sistema" },
+      { name: "twitter:description", content: "Monte automaticamente seu plano de 180 dias: sprints, rotina, hábitos, métricas e check-ins diários numa experiência premium." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/47a13422-8058-489d-97dd-2155b1e62070/id-preview-f317a3fc--004aeb9b-a400-4479-9cdc-2bb3384870fc.lovable.app-1783397674104.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/47a13422-8058-489d-97dd-2155b1e62070/id-preview-f317a3fc--004aeb9b-a400-4479-9cdc-2bb3384870fc.lovable.app-1783397674104.png" },
     ],
     links: [
       {
