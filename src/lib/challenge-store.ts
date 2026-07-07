@@ -83,7 +83,10 @@ const DEFAULT_STATE: ChallengeState = {
   xp: 0,
 };
 
-let state: ChallengeState = load();
+// Start from defaults so server and first client render match.
+// Real data is loaded from localStorage after mount (see subscribe below).
+let state: ChallengeState = DEFAULT_STATE;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
 function load(): ChallengeState {
@@ -95,6 +98,13 @@ function load(): ChallengeState {
   } catch {
     return DEFAULT_STATE;
   }
+}
+
+function hydrate() {
+  if (hydrated || typeof localStorage === "undefined") return;
+  hydrated = true;
+  state = load();
+  listeners.forEach((l) => l());
 }
 
 function persist() {
@@ -118,12 +128,14 @@ export function useChallenge(): ChallengeState {
   return useSyncExternalStore(
     (cb) => {
       listeners.add(cb);
+      hydrate();
       return () => listeners.delete(cb);
     },
     () => state,
-    () => state,
+    () => DEFAULT_STATE,
   );
 }
+
 
 // ---------- derived helpers ----------
 
