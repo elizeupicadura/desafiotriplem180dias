@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Award, Brain, Flame, Target, Users } from "lucide-react";
+import { Award, Brain, Check, Flame, Target, Users } from "lucide-react";
 import {
   currentDay,
   currentLevel,
