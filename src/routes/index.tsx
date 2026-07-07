@@ -66,7 +66,7 @@ function Index() {
               <Star key={i} className="h-4 w-4 fill-current" />
             ))}
           </div>
-          <p className="text-sm text-muted-foreground">Mais de 2.000 pessoas já começaram o desafio.</p>
+          <p className="text-sm text-muted-foreground">Mais de 546 pessoas já começaram o desafio.</p>
         </div>
 
         {/* benefits */}
