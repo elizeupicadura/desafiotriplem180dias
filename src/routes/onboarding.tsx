@@ -9,7 +9,6 @@ import {
   Plus,
   Target,
   Trash2,
-  X,
 } from "lucide-react";
 import {
   daysBetween,
@@ -400,5 +399,3 @@ function StepMilestones({ endDate }: { endDate: string }) {
   );
 }
 
-// unused imports guard
-void X;
