@@ -8,34 +8,14 @@ import { Button } from "@/components/ui/button";
 const WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbz6inpVEgSwXUewtfK5fWbGrS9xkEJuwT5XIf2WgMSe-T8-E_5iC8xfie3J2sfHBeMvbQ/exec";
 
-const IFRAME_NAME = "hidden_google_sheets_iframe";
-
-function submitViaHiddenForm(fields: Record<string, string>) {
-  let iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${IFRAME_NAME}"]`);
-  if (!iframe) {
-    iframe = document.createElement("iframe");
-    iframe.name = IFRAME_NAME;
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-  }
-
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = WEBHOOK_URL;
-  form.target = IFRAME_NAME;
-  form.style.display = "none";
-
-  Object.entries(fields).forEach(([name, value]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
+async function submitToSheets(fields: Record<string, string>) {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([name, value]) => formData.append(name, value ?? ""));
+  await fetch(WEBHOOK_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData,
   });
-
-  document.body.appendChild(form);
-  form.submit();
-  setTimeout(() => form.remove(), 2000);
 }
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
@@ -125,7 +105,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     };
 
     try {
-      submitViaHiddenForm(payload);
+      await submitToSheets(payload);
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Erro ao enviar");
@@ -153,7 +133,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   function testSend() {
     setStatus("sending");
     setError("");
-    submitViaHiddenForm({
+    submitToSheets({
       nome: "Teste Lovable",
       whatsapp: "62999999999",
       instagram: "@teste",
