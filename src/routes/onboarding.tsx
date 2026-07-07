@@ -143,20 +143,20 @@ function Heading({ title, subtitle }: { title: string; subtitle?: string }) {
 
 function StepGoal(props: {
   name: string;
-  setName: (v: string) => void;
   goal: string;
   setGoal: (v: string) => void;
+  why: string;
+  setWhy: (v: string) => void;
   endDate: string;
   setEndDate: (v: string) => void;
   remaining: number;
 }) {
   return (
     <div className="space-y-8">
-      <Heading title="Qual é sua grande meta?" subtitle="Uma direção clara muda tudo." />
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Como você se chama?</label>
-        <Input value={props.name} onChange={(e) => props.setName(e.target.value)} placeholder="Seu nome" className="h-14 text-lg" />
-      </div>
+      <Heading
+        title={props.name ? `Olá, ${props.name} 👋` : "Qual é sua grande meta?"}
+        subtitle="Uma direção clara muda tudo."
+      />
       <div className="space-y-2">
         <label className="text-sm font-medium">Sua grande meta</label>
         <Input
@@ -166,6 +166,16 @@ function StepGoal(props: {
           className="h-14 text-lg"
         />
         <p className="text-xs text-muted-foreground">Exemplos: Faturar 100 mil · Perder 20kg · Construir minha empresa</p>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Por que essa meta importa para você?</label>
+        <Textarea
+          value={props.why}
+          onChange={(e) => props.setWhy(e.target.value)}
+          placeholder="Quando pensar em desistir, isso vai te lembrar por que começou."
+          rows={3}
+          className="resize-none text-base"
+        />
       </div>
       <div className="space-y-2">
         <label className="text-sm font-medium">Qual será sua data final?</label>
