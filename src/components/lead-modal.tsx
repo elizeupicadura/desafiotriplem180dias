@@ -6,16 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbz6inpVEgSwXUewtfK5fWbGrS9xkEJuwT5XIf2WgMSe-T8-E_5iC8xfie3J2sfHBeMvbQ/exec";
+  "https://script.google.com/macros/s/AKfycbw8xpyYSRlgykoNytr-IZStlMUNznbXBXmewUNUsv7almSFcdRh98-7ZOxbMB5dyuVoPw/exec";
 
-async function submitToSheets(fields: Record<string, string>) {
-  const formData = new FormData();
-  Object.entries(fields).forEach(([name, value]) => formData.append(name, value ?? ""));
-  await fetch(WEBHOOK_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData,
-  });
+function submitToSheets(fields: Record<string, string>) {
+  const params = new URLSearchParams();
+  Object.entries(fields).forEach(([name, value]) => params.append(name, value ?? ""));
+  const img = new Image();
+  img.src = `${WEBHOOK_URL}?${params.toString()}`;
 }
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
