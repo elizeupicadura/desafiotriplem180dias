@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const WEBHOOK_URL =
+  import.meta.env.VITE_GOOGLE_SCRIPT_URL ??
   "https://script.google.com/macros/s/AKfycbxQcSBy5kEuIYeyb4zC-NVDX9eFBs0WD4f4zjAvtpFOJW2FD3A5xpttrcWSatvKvM-D2A/exec";
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
@@ -70,7 +71,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       await fetch(WEBHOOK_URL, {
         method: "POST",
         mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
       setChallenge({
