@@ -37,6 +37,8 @@ export type ChallengeState = {
   whatsapp: string;
   instagram: string;
   email: string;
+  perfil: string;
+  objetivoFinanceiro: string;
   goal: string;
   why: string;
   startDate: string; // ISO
@@ -65,6 +67,8 @@ const DEFAULT_STATE: ChallengeState = {
   whatsapp: "",
   instagram: "",
   email: "",
+  perfil: "",
+  objetivoFinanceiro: "",
   goal: "",
   why: "",
   startDate: "",
