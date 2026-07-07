@@ -77,6 +77,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     if (!valid) return;
     setSaving(true);
     setError("");
+    setStatus("sending");
 
     const payload = {
       nome: f.name.trim(),
@@ -101,6 +102,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
+      setStatus("sent");
       setChallenge({
         name: f.name.trim(),
         whatsapp: f.whatsapp.trim(),
@@ -112,12 +114,47 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         objetivoFinanceiro: f.objetivoFinanceiro,
       });
       onDone();
-    } catch {
-      setError("Não foi possível liberar seu desafio agora. Tente novamente.");
+    } catch (err) {
+      setStatus("error");
+      setError(
+        `Não foi possível liberar seu desafio agora. Tente novamente. ${err instanceof Error ? err.message : ""}`.trim(),
+      );
     } finally {
       setSaving(false);
     }
   }
+
+  async function testSend() {
+    setStatus("sending");
+    setError("");
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          nome: "Teste Lovable",
+          whatsapp: "62999999999",
+          instagram: "@teste",
+          email: "teste@teste.com",
+          meta: "Teste de integração",
+          origem: "Desafio 180 Dias - Teste",
+          pagina: browserData.pageUrl,
+        }),
+      });
+      setStatus("sent");
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
+    }
+  }
+
+  const STATUS_TEXT: Record<typeof status, string> = {
+    idle: "Status: aguardando envio",
+    sending: "Status: enviando...",
+    sent: "Status: enviado para o Google Sheets",
+    error: "Status: erro ao enviar",
+  };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
