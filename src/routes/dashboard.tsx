@@ -14,6 +14,7 @@ import {
   todayISO,
   totalDays,
   useChallenge,
+  useChallengeHydrated,
 } from "@/lib/challenge-store";
 import { celebrate } from "@/lib/confetti";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
-function greeting() {
-  const h = new Date().getHours();
+function greetingForHour(h: number) {
   if (h < 12) return "Bom dia";
   if (h < 18) return "Boa tarde";
   return "Boa noite";
@@ -32,18 +32,26 @@ function greeting() {
 
 function Dashboard() {
   const c = useChallenge();
+  const hydrated = useChallengeHydrated();
   const navigate = useNavigate();
+  const [today, setToday] = useState("");
+  const [greeting, setGreeting] = useState("Olá");
 
   useEffect(() => {
-    if (!c.endDate) navigate({ to: "/onboarding" });
-  }, [c.endDate, navigate]);
+    setToday(todayISO());
+    setGreeting(greetingForHour(new Date().getHours()));
+  }, []);
 
-  if (!c.endDate) return null;
+  useEffect(() => {
+    if (hydrated && !c.endDate) navigate({ to: "/onboarding" });
+  }, [c.endDate, hydrated, navigate]);
 
-  const sprintIdx = currentSprintIndex(c);
+  if (!hydrated || !c.endDate || !today) return null;
+
+  const sprintIdx = currentSprintIndex(c, today);
   const sprint = c.sprints[sprintIdx];
   const level = currentLevel(c.xp);
-  const pct = progressPct(c);
+  const pct = progressPct(c, today);
   const total = totalDays(c);
   const per = Math.round(total / c.sprints.length);
   const sprintStart = sprintIdx * per + 1;
@@ -56,10 +64,10 @@ function Dashboard() {
         <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl">
-              {greeting()}, {c.name || "Executor"}.
+              {greeting}, {c.name || "Executor"}.
             </h1>
             <p className="mt-1 text-muted-foreground">
-              Hoje é o dia {currentDay(c)}. Faltam {daysRemaining(c)} dias.
+              Hoje é o dia {currentDay(c, today)}. Faltam {daysRemaining(c, today)} dias.
             </p>
           </div>
           <a
@@ -79,7 +87,7 @@ function Dashboard() {
         )}
 
         {/* mission of the day */}
-        <MissionCard />
+        <MissionCard today={today} />
 
         {/* level */}
         <div className="mb-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -106,8 +114,8 @@ function Dashboard() {
         {/* stats */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Stat label="Progresso" value={`${pct}%`} />
-          <Stat label="Dias restantes" value={daysRemaining(c)} />
-          <Stat label="Sequência" value={streak(c)} icon={<Flame className="h-4 w-4 text-primary" />} />
+          <Stat label="Dias restantes" value={daysRemaining(c, today)} />
+          <Stat label="Sequência" value={streak(c, today)} icon={<Flame className="h-4 w-4 text-primary" />} />
           <Stat label="XP" value={c.xp} icon={<Award className="h-4 w-4 text-primary" />} />
         </div>
 
@@ -160,9 +168,8 @@ function Dashboard() {
   );
 }
 
-function MissionCard() {
+function MissionCard({ today }: { today: string }) {
   const c = useChallenge();
-  const today = todayISO();
   const done = new Set(missionFor(c, today));
   const items = c.habits.length ? c.habits : c.routine.map((r) => ({ id: r.id, label: `${r.time} · ${r.title}` }));
 

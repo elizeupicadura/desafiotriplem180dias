@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,6 +16,7 @@ import {
   todayISO,
   uid,
   useChallenge,
+  useChallengeHydrated,
   type Habit,
   type Metric,
   type RoutineBlock,
@@ -36,27 +37,45 @@ const STEPS = ["Meta", "Sprints", "Objetivos", "Rotina", "Compromissos", "Métri
 
 function Onboarding() {
   const c = useChallenge();
+  const hydrated = useChallengeHydrated();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
 
-  const [name] = useState(c.name);
-  const [goal, setGoal] = useState(c.goal);
-  const [why, setWhy] = useState(c.why);
-  const [endDate, setEndDate] = useState(c.endDate || defaultEnd());
-  const [sprints, setSprints] = useState<Sprint[]>(c.sprints);
-  const [routine, setRoutine] = useState<RoutineBlock[]>(c.routine);
-  const [habits, setHabits] = useState<Habit[]>(c.habits);
-  const [metrics, setMetrics] = useState<Metric[]>(c.metrics);
+  const name = c.name;
+  const [today, setToday] = useState("");
+  const [initialized, setInitialized] = useState(false);
+  const [goal, setGoal] = useState("");
+  const [why, setWhy] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [sprints, setSprints] = useState<Sprint[]>([]);
+  const [routine, setRoutine] = useState<RoutineBlock[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
 
-  const remaining = daysBetween(todayISO(), endDate);
+  useEffect(() => {
+    if (!hydrated || initialized) return;
+    const currentToday = todayISO();
+    setToday(currentToday);
+    setGoal(c.goal);
+    setWhy(c.why);
+    setEndDate(c.endDate || addDaysISO(currentToday, 180));
+    setSprints(c.sprints);
+    setRoutine(c.routine);
+    setHabits(c.habits);
+    setMetrics(c.metrics);
+    setInitialized(true);
+  }, [c.endDate, c.goal, c.habits, c.metrics, c.routine, c.sprints, c.why, hydrated, initialized]);
+
+  const remaining = today && endDate ? daysBetween(today, endDate) : 0;
 
   function next() {
-    setChallenge({ name, goal, why, endDate, sprints, routine, habits, metrics, startDate: c.startDate || todayISO() });
+    const currentToday = today || todayISO();
+    setChallenge({ name, goal, why, endDate, sprints, routine, habits, metrics, startDate: c.startDate || currentToday });
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      setChallenge({ completed: true, startDate: c.startDate || todayISO() });
+      setChallenge({ completed: true, startDate: c.startDate || currentToday });
       navigate({ to: "/dashboard" });
     }
   }
@@ -99,6 +118,7 @@ function Onboarding() {
               endDate={endDate}
               setEndDate={setEndDate}
               remaining={remaining}
+              today={today}
             />
           )}
           {step === 1 && <StepSprints sprints={sprints} setSprints={setSprints} />}
@@ -106,7 +126,7 @@ function Onboarding() {
           {step === 3 && <StepRoutine routine={routine} setRoutine={setRoutine} />}
           {step === 4 && <StepHabits habits={habits} setHabits={setHabits} />}
           {step === 5 && <StepMetrics metrics={metrics} setMetrics={setMetrics} />}
-          {step === 6 && <StepMilestones endDate={endDate} />}
+          {step === 6 && <StepMilestones endDate={endDate} today={today} />}
         </div>
 
         <div className="mt-12 flex items-center justify-between">
@@ -126,9 +146,9 @@ function Onboarding() {
   );
 }
 
-function defaultEnd() {
-  const d = new Date();
-  d.setDate(d.getDate() + 180);
+function addDaysISO(startDate: string, days: number) {
+  const [year, month, day] = startDate.split("-").map(Number);
+  const d = new Date(Date.UTC(year, month - 1, day + days));
   return d.toISOString().slice(0, 10);
 }
 
@@ -150,6 +170,7 @@ function StepGoal(props: {
   endDate: string;
   setEndDate: (v: string) => void;
   remaining: number;
+  today: string;
 }) {
   return (
     <div className="space-y-8">
@@ -182,7 +203,7 @@ function StepGoal(props: {
         <Input
           type="date"
           value={props.endDate}
-          min={todayISO()}
+          min={props.today || undefined}
           onChange={(e) => props.setEndDate(e.target.value)}
           className="h-14 text-lg"
         />
@@ -384,8 +405,8 @@ function StepMetrics({ metrics, setMetrics }: { metrics: Metric[]; setMetrics: (
   );
 }
 
-function StepMilestones({ endDate }: { endDate: string }) {
-  const total = daysBetween(todayISO(), endDate);
+function StepMilestones({ endDate, today }: { endDate: string; today: string }) {
+  const total = today && endDate ? daysBetween(today, endDate) : 0;
   const per = total / 4;
   const milestones = [
     { day: 1, label: "Início da jornada" },

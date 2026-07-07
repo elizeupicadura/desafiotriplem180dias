@@ -89,6 +89,12 @@ let state: ChallengeState = DEFAULT_STATE;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  hydrate();
+  return () => listeners.delete(cb);
+}
+
 function load(): ChallengeState {
   if (typeof localStorage === "undefined") return DEFAULT_STATE;
   try {
@@ -126,13 +132,17 @@ export function resetChallenge() {
 
 export function useChallenge(): ChallengeState {
   return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      hydrate();
-      return () => listeners.delete(cb);
-    },
+    subscribe,
     () => state,
     () => DEFAULT_STATE,
+  );
+}
+
+export function useChallengeHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => hydrated,
+    () => false,
   );
 }
 
@@ -143,51 +153,62 @@ export function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+const DAY_MS = 86_400_000;
+
+function isoToUtcDay(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return 0;
+  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
+}
+
+function utcDayToISO(day: number) {
+  return new Date(day * DAY_MS).toISOString().slice(0, 10);
+}
+
 export function daysBetween(a: string, b: string) {
   if (!a || !b) return 0;
-  const ms = new Date(b).getTime() - new Date(a).getTime();
-  return Math.max(0, Math.round(ms / 86400000));
+  return Math.max(0, isoToUtcDay(b) - isoToUtcDay(a));
 }
 
 export function totalDays(s: ChallengeState) {
   return daysBetween(s.startDate, s.endDate);
 }
 
-export function daysElapsed(s: ChallengeState) {
+export function daysElapsed(s: ChallengeState, today = todayISO()) {
   if (!s.startDate) return 0;
-  return Math.min(totalDays(s), daysBetween(s.startDate, todayISO()));
+  return Math.min(totalDays(s), daysBetween(s.startDate, today));
 }
 
-export function daysRemaining(s: ChallengeState) {
-  return Math.max(0, totalDays(s) - daysElapsed(s));
+export function daysRemaining(s: ChallengeState, today = todayISO()) {
+  return Math.max(0, totalDays(s) - daysElapsed(s, today));
 }
 
-export function currentDay(s: ChallengeState) {
-  return daysElapsed(s) + 1;
+export function currentDay(s: ChallengeState, today = todayISO()) {
+  return daysElapsed(s, today) + 1;
 }
 
-export function progressPct(s: ChallengeState) {
+export function progressPct(s: ChallengeState, today = todayISO()) {
   const t = totalDays(s);
   if (!t) return 0;
-  return Math.min(100, Math.round((daysElapsed(s) / t) * 100));
+  return Math.min(100, Math.round((daysElapsed(s, today) / t) * 100));
 }
 
-export function currentSprintIndex(s: ChallengeState) {
+export function currentSprintIndex(s: ChallengeState, today = todayISO()) {
   const t = totalDays(s);
   if (!t) return 0;
   const per = t / s.sprints.length;
-  return Math.min(s.sprints.length - 1, Math.floor(daysElapsed(s) / per));
+  return Math.min(s.sprints.length - 1, Math.floor(daysElapsed(s, today) / per));
 }
 
-export function streak(s: ChallengeState) {
+export function streak(s: ChallengeState, today = todayISO()) {
   const done = new Set(s.checkins.filter((c) => c.execution >= 50).map((c) => c.date));
   let count = 0;
-  const d = new Date();
+  let day = isoToUtcDay(today);
   // start from today; if today not done, start from yesterday
-  if (!done.has(d.toISOString().slice(0, 10))) d.setDate(d.getDate() - 1);
-  while (done.has(d.toISOString().slice(0, 10))) {
+  if (!done.has(utcDayToISO(day))) day -= 1;
+  while (done.has(utcDayToISO(day))) {
     count++;
-    d.setDate(d.getDate() - 1);
+    day -= 1;
   }
   return count;
 }
