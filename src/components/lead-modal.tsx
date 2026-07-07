@@ -49,10 +49,13 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [isDev, setIsDev] = useState(false);
   const [browserData, setBrowserData] = useState<BrowserLeadData>(EMPTY_BROWSER_DATA);
 
   useEffect(() => {
     if (!open) return;
+    setIsDev(import.meta.env.DEV || /localhost|lovable\.app|127\.0\.0\.1/.test(window.location.hostname));
     const params = new URLSearchParams(window.location.search);
     setBrowserData({
       pageUrl: window.location.href,
@@ -74,6 +77,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     if (!valid) return;
     setSaving(true);
     setError("");
+    setStatus("sending");
 
     const payload = {
       nome: f.name.trim(),
@@ -98,6 +102,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
       });
+      setStatus("sent");
       setChallenge({
         name: f.name.trim(),
         whatsapp: f.whatsapp.trim(),
@@ -109,12 +114,47 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         objetivoFinanceiro: f.objetivoFinanceiro,
       });
       onDone();
-    } catch {
-      setError("Não foi possível liberar seu desafio agora. Tente novamente.");
+    } catch (err) {
+      setStatus("error");
+      setError(
+        `Não foi possível liberar seu desafio agora. Tente novamente. ${err instanceof Error ? err.message : ""}`.trim(),
+      );
     } finally {
       setSaving(false);
     }
   }
+
+  async function testSend() {
+    setStatus("sending");
+    setError("");
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          nome: "Teste Lovable",
+          whatsapp: "62999999999",
+          instagram: "@teste",
+          email: "teste@teste.com",
+          meta: "Teste de integração",
+          origem: "Desafio 180 Dias - Teste",
+          pagina: browserData.pageUrl,
+        }),
+      });
+      setStatus("sent");
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
+    }
+  }
+
+  const STATUS_TEXT: Record<typeof status, string> = {
+    idle: "Status: aguardando envio",
+    sending: "Status: enviando...",
+    sent: "Status: enviado para o Google Sheets",
+    error: "Status: erro ao enviar",
+  };
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -178,6 +218,29 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
           Liberar meu desafio
           {!saving && <ArrowRight className="ml-2 h-5 w-5" />}
         </Button>
+
+        <p
+          className={
+            "mt-2 text-center text-xs font-medium " +
+            (status === "error"
+              ? "text-destructive"
+              : status === "sent"
+                ? "text-primary"
+                : "text-muted-foreground")
+          }
+        >
+          {STATUS_TEXT[status]}
+        </p>
+
+        {isDev && (
+          <button
+            onClick={testSend}
+            className="mt-3 w-full rounded-lg border border-dashed border-border py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Testar envio Sheets
+          </button>
+        )}
+
       </div>
     </div>
   );
