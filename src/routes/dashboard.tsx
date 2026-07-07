@@ -71,10 +71,12 @@ function Dashboard() {
             </p>
           </div>
           <a
-            href="#"
+            href="https://whatsapp.com/channel/0029Vb5ZfYdFnSz9aTKoDg2z"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hidden shrink-0 items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:inline-flex"
           >
-            <Users className="h-4 w-4" /> Entrar no Grupo
+            <Users className="h-4 w-4" /> Entrar no canal gratuito
           </a>
         </header>
 
