@@ -49,6 +49,8 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [isDev, setIsDev] = useState(false);
   const [browserData, setBrowserData] = useState<BrowserLeadData>(EMPTY_BROWSER_DATA);
 
   useEffect(() => {
