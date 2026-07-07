@@ -55,6 +55,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
 
   useEffect(() => {
     if (!open) return;
+    setIsDev(import.meta.env.DEV || /localhost|lovable\.app|127\.0\.0\.1/.test(window.location.hostname));
     const params = new URLSearchParams(window.location.search);
     setBrowserData({
       pageUrl: window.location.href,
