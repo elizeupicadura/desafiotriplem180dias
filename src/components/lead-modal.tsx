@@ -21,9 +21,35 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   async function submit() {
     if (!valid) return;
     setSaving(true);
+    const lead = {
+      name: f.name.trim(),
+      whatsapp: f.whatsapp.trim(),
+      instagram: f.instagram.trim(),
+      email: f.email.trim(),
+      goal: f.goal.trim(),
+    };
     // Persist lead locally; ready to sync to Google Sheets when connected.
-    setChallenge({ name: f.name.trim(), whatsapp: f.whatsapp.trim(), instagram: f.instagram.trim(), email: f.email.trim(), goal: f.goal.trim() });
-    await new Promise((r) => setTimeout(r, 500));
+    setChallenge(lead);
+    // Sync to Google Sheets (Apps Script webhook). no-cors avoids CORS errors.
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycbyNLpjRalRj4ubo_QKJUrkA1PVDMDlh123UZABIO21fzBond5yeP2Xid_e6D53w2yH3Tg/exec",
+        {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome: lead.name,
+            whatsapp: lead.whatsapp,
+            instagram: lead.instagram,
+            email: lead.email,
+            meta: lead.goal,
+          }),
+        },
+      );
+    } catch {
+      // Non-blocking: continue even if the sync fails.
+    }
     onDone();
   }
 
