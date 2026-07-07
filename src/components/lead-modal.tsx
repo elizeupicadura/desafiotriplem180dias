@@ -133,7 +133,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   function testSend() {
     setStatus("sending");
     setError("");
-    submitViaHiddenForm({
+    submitToSheets({
       nome: "Teste Lovable",
       whatsapp: "62999999999",
       instagram: "@teste",
