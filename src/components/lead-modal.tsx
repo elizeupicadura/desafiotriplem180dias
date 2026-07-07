@@ -218,6 +218,29 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
           Liberar meu desafio
           {!saving && <ArrowRight className="ml-2 h-5 w-5" />}
         </Button>
+
+        <p
+          className={
+            "mt-2 text-center text-xs font-medium " +
+            (status === "error"
+              ? "text-destructive"
+              : status === "sent"
+                ? "text-primary"
+                : "text-muted-foreground")
+          }
+        >
+          {STATUS_TEXT[status]}
+        </p>
+
+        {isDev && (
+          <button
+            onClick={testSend}
+            className="mt-3 w-full rounded-lg border border-dashed border-border py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Testar envio Sheets
+          </button>
+        )}
+
       </div>
     </div>
   );
