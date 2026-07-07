@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Gift, Loader2, X } from "lucide-react";
 import { setChallenge } from "@/lib/challenge-store";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,20 @@ type LeadFields = {
   objetivoFinanceiro: string;
 };
 
+type BrowserLeadData = {
+  pageUrl: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+};
+
+const EMPTY_BROWSER_DATA: BrowserLeadData = {
+  pageUrl: "",
+  utmSource: "",
+  utmMedium: "",
+  utmCampaign: "",
+};
+
 export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: () => void; onDone: () => void }) {
   const [f, setF] = useState<LeadFields>({
     name: "",
@@ -35,6 +49,18 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [browserData, setBrowserData] = useState<BrowserLeadData>(EMPTY_BROWSER_DATA);
+
+  useEffect(() => {
+    if (!open) return;
+    const params = new URLSearchParams(window.location.search);
+    setBrowserData({
+      pageUrl: window.location.href,
+      utmSource: params.get("utm_source") ?? "",
+      utmMedium: params.get("utm_medium") ?? "",
+      utmCampaign: params.get("utm_campaign") ?? "",
+    });
+  }, [open]);
 
   if (!open) return null;
 
@@ -49,7 +75,6 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     setSaving(true);
     setError("");
 
-    const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
     const payload = {
       nome: f.name.trim(),
       whatsapp: f.whatsapp.trim(),
@@ -60,10 +85,10 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       perfil: f.perfil,
       objetivoFinanceiro: f.objetivoFinanceiro,
       origem: "Desafio 180 Dias",
-      utmSource: params.get("utm_source") ?? "",
-      utmMedium: params.get("utm_medium") ?? "",
-      utmCampaign: params.get("utm_campaign") ?? "",
-      pagina: typeof window !== "undefined" ? window.location.href : "",
+      utmSource: browserData.utmSource,
+      utmMedium: browserData.utmMedium,
+      utmCampaign: browserData.utmCampaign,
+      pagina: browserData.pageUrl,
     };
 
     try {
