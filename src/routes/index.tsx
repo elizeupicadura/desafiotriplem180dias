@@ -17,6 +17,7 @@ function Index() {
   const navigate = useNavigate();
   const hasPlan = Boolean(c.endDate);
   const [modal, setModal] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
   const [loading, setLoading] = useState(false);
 
   return (
