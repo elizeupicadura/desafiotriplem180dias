@@ -92,9 +92,10 @@ function Onboarding() {
           {step === 0 && (
             <StepGoal
               name={name}
-              setName={setName}
               goal={goal}
               setGoal={setGoal}
+              why={why}
+              setWhy={setWhy}
               endDate={endDate}
               setEndDate={setEndDate}
               remaining={remaining}
