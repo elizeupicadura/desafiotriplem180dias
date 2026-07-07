@@ -105,7 +105,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     };
 
     try {
-      submitViaHiddenForm(payload);
+      await submitToSheets(payload);
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Erro ao enviar");
