@@ -62,7 +62,11 @@ const DEFAULT_SPRINTS: Sprint[] = [
 
 const DEFAULT_STATE: ChallengeState = {
   name: "",
+  whatsapp: "",
+  instagram: "",
+  email: "",
   goal: "",
+  why: "",
   startDate: "",
   endDate: "",
   sprints: DEFAULT_SPRINTS,
@@ -70,6 +74,7 @@ const DEFAULT_STATE: ChallengeState = {
   habits: [],
   metrics: [],
   checkins: [],
+  missionLog: {},
   completed: false,
   xp: 0,
 };
