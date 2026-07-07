@@ -6,7 +6,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
 const WEBHOOK_URL =
-  "https://script.google.com/macros/s/AKfycbxQcSBy5kEuIYeyb4zC-NVDX9eFBs0WD4f4zjAvtpFOJW2FD3A5xpttrcWSatvKvM-D2A/exec";
+  "https://script.google.com/macros/s/AKfycbz6inpVEgSwXUewtfK5fWbGrS9xkEJuwT5XIf2WgMSe-T8-E_5iC8xfie3J2sfHBeMvbQ/exec";
+
+const IFRAME_NAME = "hidden_google_sheets_iframe";
+
+function submitViaHiddenForm(fields: Record<string, string>) {
+  let iframe = document.querySelector<HTMLIFrameElement>(`iframe[name="${IFRAME_NAME}"]`);
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.name = IFRAME_NAME;
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = WEBHOOK_URL;
+  form.target = IFRAME_NAME;
+  form.style.display = "none";
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(() => form.remove(), 2000);
+}
 
 const PERFIS = ["CLT", "Empreendedor", "Criador de Conteúdo", "Freelancer", "Estudante", "Outro"];
 const OBJETIVOS = ["Até 10 mil", "10 a 30 mil", "30 a 100 mil", "100 mil+"];
@@ -79,7 +109,7 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     setError("");
     setStatus("sending");
 
-    const payload = {
+    const payload: Record<string, string> = {
       nome: f.name.trim(),
       whatsapp: f.whatsapp.trim(),
       instagram: f.instagram.trim(),
@@ -88,7 +118,6 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
       porqueMeta: f.porqueMeta.trim(),
       perfil: f.perfil,
       objetivoFinanceiro: f.objetivoFinanceiro,
-      origem: "Desafio 180 Dias",
       utmSource: browserData.utmSource,
       utmMedium: browserData.utmMedium,
       utmCampaign: browserData.utmCampaign,
@@ -96,12 +125,15 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
     };
 
     try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload),
-      });
+      submitViaHiddenForm(payload);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Erro ao enviar");
+      setSaving(false);
+      return;
+    }
+
+    setTimeout(() => {
       setStatus("sent");
       setChallenge({
         name: f.name.trim(),
@@ -113,46 +145,35 @@ export function LeadModal({ open, onClose, onDone }: { open: boolean; onClose: (
         perfil: f.perfil,
         objetivoFinanceiro: f.objetivoFinanceiro,
       });
-      onDone();
-    } catch (err) {
-      setStatus("error");
-      setError(
-        `Não foi possível liberar seu desafio agora. Tente novamente. ${err instanceof Error ? err.message : ""}`.trim(),
-      );
-    } finally {
       setSaving(false);
-    }
+      onDone();
+    }, 1000);
   }
 
-  async function testSend() {
+  function testSend() {
     setStatus("sending");
     setError("");
-    try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          nome: "Teste Lovable",
-          whatsapp: "62999999999",
-          instagram: "@teste",
-          email: "teste@teste.com",
-          meta: "Teste de integração",
-          origem: "Desafio 180 Dias - Teste",
-          pagina: browserData.pageUrl,
-        }),
-      });
-      setStatus("sent");
-    } catch (err) {
-      setStatus("error");
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
-    }
+    submitViaHiddenForm({
+      nome: "Teste Lovable",
+      whatsapp: "62999999999",
+      instagram: "@teste",
+      email: "teste@teste.com",
+      meta: "Teste de integração",
+      porqueMeta: "",
+      perfil: "",
+      objetivoFinanceiro: "",
+      utmSource: browserData.utmSource,
+      utmMedium: browserData.utmMedium,
+      utmCampaign: browserData.utmCampaign,
+      pagina: browserData.pageUrl,
+    });
+    setTimeout(() => setStatus("sent"), 1000);
   }
 
   const STATUS_TEXT: Record<typeof status, string> = {
     idle: "Status: aguardando envio",
-    sending: "Status: enviando...",
-    sent: "Status: enviado para o Google Sheets",
+    sending: "Enviando...",
+    sent: "Enviado. Liberando seu desafio...",
     error: "Status: erro ao enviar",
   };
 
