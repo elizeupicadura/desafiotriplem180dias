@@ -95,9 +95,17 @@ function Index() {
         onClose={() => setModal(false)}
         onDone={() => {
           setModal(false);
-          setLoading(true);
+          setUnlocked(true);
         }}
       />
+      {unlocked && (
+        <AccessUnlocked
+          onContinue={() => {
+            setUnlocked(false);
+            setLoading(true);
+          }}
+        />
+      )}
       {loading && <LoadingScreen onDone={() => navigate({ to: "/onboarding" })} />}
     </div>
   );
